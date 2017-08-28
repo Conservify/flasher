@@ -105,7 +105,6 @@ func main() {
 				break
 			}
 			if n == 0 {
-				fmt.Println("\nEOF")
 				break
 			}
 			fmt.Printf("%v", string(buff[:n]))
