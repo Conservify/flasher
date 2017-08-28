@@ -12,11 +12,13 @@ import (
 )
 
 type UploadOptions struct {
-	Boards   *PropertiesMap
-	Platform *PropertiesMap
-	Board    string
-	Binary   string
-	Port     string
+	Boards    *PropertiesMap
+	Platform  *PropertiesMap
+	Board     string
+	Binary    string
+	Port      string
+	Tools     string
+	SkipTouch bool
 }
 
 func getPortsMap() map[string]bool {
@@ -59,7 +61,7 @@ func diffPortMaps(before map[string]bool, after map[string]bool) (added []string
 	return
 }
 
-func DiscoverPort() string {
+func discoverPort() string {
 	before := getPortsMap()
 
 	s := time.Now()
@@ -104,7 +106,7 @@ func Upload(options *UploadOptions) error {
 
 	port := options.Port
 	if port == "" {
-		port = DiscoverPort()
+		port = discoverPort()
 		if port == "" {
 			return fmt.Errorf("No port")
 		}
@@ -112,7 +114,7 @@ func Upload(options *UploadOptions) error {
 		use1200bpsTouch := board.ToBool("upload.use_1200bps_touch")
 		// waitForUploadPort := board.ToBool("upload.wait_for_upload_port")
 
-		if use1200bpsTouch {
+		if !options.SkipTouch && use1200bpsTouch {
 			log.Printf("Use 1200bps touch...")
 
 			mode := &serial.Mode{
@@ -126,7 +128,7 @@ func Upload(options *UploadOptions) error {
 			p.SetRTS(true)
 			p.Close()
 
-			port = DiscoverPort()
+			port = discoverPort()
 			if port == "" {
 				return fmt.Errorf("No port")
 			}
@@ -137,7 +139,7 @@ func Upload(options *UploadOptions) error {
 
 	u.Properties["upload.verbose"] = u.Properties["upload.params.verbose"]
 	u.Properties["upload.verify"] = u.Properties["upload.params.verify"]
-	u.Properties["runtime.tools.bossac-1.6.1-arduino.path"] = "./tools"
+	u.Properties["runtime.tools.bossac-1.6.1-arduino.path"] = options.Tools
 	u.Properties["serial.port.file"] = path.Base(port)
 	u.Properties["build.path"] = path.Dir(options.Binary)
 	u.Properties["build.project_name"] = strings.Replace(path.Base(options.Binary), path.Ext(options.Binary), "", -1)
