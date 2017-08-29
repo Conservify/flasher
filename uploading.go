@@ -130,7 +130,10 @@ func Upload(options *UploadOptions) error {
 
 			port = discoverPort()
 			if port == "" {
-				return fmt.Errorf("No port")
+				if options.Port == "" {
+					return fmt.Errorf("No port")
+				}
+				port = options.Port
 			}
 		}
 	}

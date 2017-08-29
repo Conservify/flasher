@@ -12,12 +12,13 @@ import (
 )
 
 type configuration struct {
-	Board     string
-	Port      string
-	Binary    string
-	Tools     string
-	SkipTouch bool
-	Tail      bool
+	Board          string
+	Port           string
+	Binary         string
+	Tools          string
+	SkipTouch      bool
+	Tail           bool
+	TailInactivity int
 }
 
 func searchForTools(config *configuration) string {
@@ -44,6 +45,30 @@ func searchForTools(config *configuration) string {
 	return "./tools"
 }
 
+func echoSerial(config *configuration, c *chan bool) {
+	mode := &serial.Mode{
+		BaudRate: 115200,
+	}
+	port, err := serial.Open(config.Port, mode)
+	if err != nil {
+		log.Fatalf("Unable to open %s (%v)", config.Port, err)
+	}
+
+	buff := make([]byte, 100)
+	for {
+		n, err := port.Read(buff)
+		if err != nil {
+			log.Fatal(err)
+			break
+		}
+		if n == 0 {
+			break
+		}
+		*c <- true
+		fmt.Printf("%v", string(buff[:n]))
+	}
+}
+
 func main() {
 	config := configuration{}
 
@@ -53,61 +78,62 @@ func main() {
 	flag.StringVar(&config.Tools, "tools", "", "path to the tools directory")
 	flag.BoolVar(&config.SkipTouch, "skip-touch", false, "skip the touch")
 	flag.BoolVar(&config.Tail, "tail", false, "show serial")
+	flag.IntVar(&config.TailInactivity, "tail-inactivity", 0, "inactive time until quitting tail")
 	flag.Parse()
 
-	if config.Binary == "" {
-		flag.Usage()
-		os.Exit(1)
+	if config.Binary != "" {
+		config.Tools = searchForTools(&config)
+
+		boardsPath := path.Join(config.Tools, "boards.txt")
+		boards, err := NewPropertiesMapFromFile(boardsPath)
+		if err != nil {
+			log.Fatalf("Unable to open %s (%v)", boardsPath, err)
+		}
+
+		platformPath := path.Join(config.Tools, "platform.txt")
+		platform, err := NewPropertiesMapFromFile(platformPath)
+		if err != nil {
+			log.Fatalf("Unable to open %s (%v)", platformPath, err)
+		}
+
+		Upload(&UploadOptions{
+			Boards:    boards,
+			Platform:  platform,
+			SkipTouch: config.SkipTouch,
+			Board:     config.Board,
+			Port:      config.Port,
+			Binary:    config.Binary,
+			Tools:     config.Tools,
+		})
 	}
-
-	config.Tools = searchForTools(&config)
-
-	boardsPath := path.Join(config.Tools, "boards.txt")
-	boards, err := NewPropertiesMapFromFile(boardsPath)
-	if err != nil {
-		log.Fatalf("Unable to open %s (%v)", boardsPath, err)
-	}
-
-	platformPath := path.Join(config.Tools, "platform.txt")
-	platform, err := NewPropertiesMapFromFile(platformPath)
-	if err != nil {
-		log.Fatalf("Unable to open %s (%v)", platformPath, err)
-	}
-
-	Upload(&UploadOptions{
-		Boards:    boards,
-		Platform:  platform,
-		SkipTouch: config.SkipTouch,
-		Board:     config.Board,
-		Port:      config.Port,
-		Binary:    config.Binary,
-		Tools:     config.Tools,
-	})
 
 	if config.Tail {
 		time.Sleep(1 * time.Second)
 
-		mode := &serial.Mode{
-			BaudRate: 115200,
-		}
-		port, err := serial.Open(config.Port, mode)
-		if err != nil {
-			log.Fatalf("Unable to open %s (%v)", config.Port, err)
-		}
+		ch := make(chan bool)
+		go echoSerial(&config, &ch)
 
-		fmt.Println()
+		go func() {
+			for {
+				time.Sleep(1 * time.Second)
+				ch <- false
+			}
+		}()
 
-		buff := make([]byte, 100)
+		previous := time.Now()
 		for {
-			n, err := port.Read(buff)
-			if err != nil {
-				log.Fatal(err)
-				break
+			data := <-ch
+			if data {
+				previous = time.Now()
 			}
-			if n == 0 {
-				break
+
+			if config.TailInactivity > 0 {
+				ago := time.Duration(-config.TailInactivity) * time.Second
+				to := time.Now().Add(ago)
+				if previous.Before(to) {
+					break
+				}
 			}
-			fmt.Printf("%v", string(buff[:n]))
 		}
 	}
 }
