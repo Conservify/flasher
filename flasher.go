@@ -81,7 +81,16 @@ func main() {
 	flag.IntVar(&config.TailInactivity, "tail-inactivity", 0, "inactive time until quitting tail")
 	flag.Parse()
 
+	if config.Binary == "" && !config.Tail {
+		flag.Usage()
+		os.Exit(2)
+	}
+
 	if config.Binary != "" {
+		if _, err := os.Stat(config.Binary); os.IsNotExist(err) {
+			log.Fatalf("No such binary '%s'", config.Binary)
+		}
+
 		config.Tools = searchForTools(&config)
 
 		boardsPath := path.Join(config.Tools, "boards.txt")
