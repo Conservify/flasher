@@ -112,7 +112,6 @@ func Upload(options *UploadOptions) error {
 		}
 	} else {
 		use1200bpsTouch := board.ToBool("upload.use_1200bps_touch")
-		// waitForUploadPort := board.ToBool("upload.wait_for_upload_port")
 
 		if !options.SkipTouch && use1200bpsTouch {
 			log.Printf("Use 1200bps touch...")
@@ -122,7 +121,7 @@ func Upload(options *UploadOptions) error {
 			}
 			p, err := serial.Open(port, mode)
 			if err != nil {
-				log.Fatal(err)
+				log.Fatalf("Unable to perform 1200bps touch: %v", err)
 			}
 			p.SetDTR(false)
 			p.SetRTS(true)

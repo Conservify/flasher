@@ -26,7 +26,11 @@ func searchForTools(config *configuration) string {
 		return config.Tools
 	}
 
-	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	exec, err := os.Executable()
+	if err != nil {
+		log.Fatal(err)
+	}
+	dir, err := filepath.Abs(filepath.Dir(exec))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -34,6 +38,7 @@ func searchForTools(config *configuration) string {
 	candidates := []string{
 		filepath.Join(dir, "tools"),
 		filepath.Join(filepath.Dir(dir), "lib/flasher"),
+		"./tools",
 	}
 
 	for _, p := range candidates {
@@ -42,7 +47,7 @@ func searchForTools(config *configuration) string {
 		}
 	}
 
-	return "./tools"
+	panic(fmt.Sprintf("Unable to find tools, looked in %v", candidates))
 }
 
 func echoSerial(config *configuration, c *chan bool) {
