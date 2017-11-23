@@ -1,4 +1,4 @@
-flasher: flasher.go
+flasher: *.go
 	go build -o flasher *.go
 
 install: flasher
@@ -7,3 +7,6 @@ install: flasher
 	sudo  cp flasher ~/tools/bin
 	sudo chown root. ~/tools/bin/flasher
 	sudo chmod ug+s ~/tools/bin/flasher
+
+clean:
+	rm -f flasher

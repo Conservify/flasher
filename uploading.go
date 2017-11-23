@@ -89,13 +89,20 @@ func discoverPort() string {
 	return ""
 }
 
+func getPlatformKey() string {
+	if runtime.GOOS == "darwin" {
+		return "macosx"
+	}
+	return runtime.GOOS
+}
+
 func Upload(options *UploadOptions) error {
 	board := options.Boards.ToSubtree(options.Board)
 	tools := options.Platform.ToSubtree("tools")
 	tool, _ := board.Lookup("upload.tool", make(map[string]string))
 	u := board.Merge(tools.ToSubtree(tool))
 
-	commandKey := "cmd." + runtime.GOOS
+	commandKey := "cmd." + getPlatformKey()
 	platformSpecificCommand := u.Properties[commandKey]
 	if platformSpecificCommand != "" {
 		log.Printf("Using platform specific upload command (tried %s): %s", commandKey, platformSpecificCommand)
