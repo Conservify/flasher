@@ -91,9 +91,11 @@ func main() {
 		os.Exit(2)
 	}
 
+	pd := NewPortDiscoveror()
+
 	if config.Binary != "" {
 		if _, err := os.Stat(config.Binary); os.IsNotExist(err) {
-			log.Fatalf("No such binary '%s'", config.Binary)
+			log.Fatalf("Error: No such binary '%s'", config.Binary)
 		}
 
 		config.Tools = searchForTools(&config)
@@ -101,13 +103,13 @@ func main() {
 		boardsPath := path.Join(config.Tools, "boards.txt")
 		boards, err := NewPropertiesMapFromFile(boardsPath)
 		if err != nil {
-			log.Fatalf("Unable to open %s (%v)", boardsPath, err)
+			log.Fatalf("Error: Unable to open %s (%v)", boardsPath, err)
 		}
 
 		platformPath := path.Join(config.Tools, "platform.txt")
 		platform, err := NewPropertiesMapFromFile(platformPath)
 		if err != nil {
-			log.Fatalf("Unable to open %s (%v)", platformPath, err)
+			log.Fatalf("Error: Unable to open %s (%v)", platformPath, err)
 		}
 
 		Upload(&UploadOptions{
@@ -123,6 +125,14 @@ func main() {
 
 	if config.Tail {
 		time.Sleep(1 * time.Second)
+
+		if _, err := os.Stat(config.Port); os.IsNotExist(err) {
+			log.Printf("Port '%s' disappeared, scanning...", config.Port)
+			config.Port = pd.discover()
+			if config.Port == "" {
+				log.Fatalf("Error: Unable to find port to tail.")
+			}
+		}
 
 		ch := make(chan bool)
 		go echoSerial(&config, &ch)

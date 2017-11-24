@@ -61,17 +61,25 @@ func diffPortMaps(before map[string]bool, after map[string]bool) (added []string
 	return
 }
 
-func discoverPort() string {
-	before := getPortsMap()
+type PortDiscoverer struct {
+	before map[string]bool
+}
 
+func NewPortDiscoveror() *PortDiscoverer {
+	return &PortDiscoverer{
+		before: getPortsMap(),
+	}
+}
+
+func (pd *PortDiscoverer) discover() string {
 	s := time.Now()
 
 	for {
 		after := getPortsMap()
 
-		added, removed := diffPortMaps(before, after)
+		added, removed := diffPortMaps(pd.before, after)
 
-		log.Printf("%v -> %v | %v %v\n", toKeys(before), toKeys(after), removed, added)
+		log.Printf("%v -> %v | %v %v\n", toKeys(pd.before), toKeys(after), removed, added)
 
 		if len(added) > 0 {
 			return added[0]
@@ -83,10 +91,15 @@ func discoverPort() string {
 			break
 		}
 
-		before = after
+		pd.before = after
 	}
 
 	return ""
+}
+
+func listPorts() {
+	ports := getPortsMap()
+	log.Printf("Ports: %v", toKeys(ports))
 }
 
 func getPlatformKey() string {
@@ -113,7 +126,7 @@ func Upload(options *UploadOptions) error {
 
 	port := options.Port
 	if port == "" {
-		port = discoverPort()
+		port = NewPortDiscoveror().discover()
 		if port == "" {
 			return fmt.Errorf("No port")
 		}
@@ -121,20 +134,21 @@ func Upload(options *UploadOptions) error {
 		use1200bpsTouch := board.ToBool("upload.use_1200bps_touch")
 
 		if !options.SkipTouch && use1200bpsTouch {
-			log.Printf("Use 1200bps touch...")
+			log.Printf("Performing 1200bps touch...")
 
 			mode := &serial.Mode{
 				BaudRate: 1200,
 			}
 			p, err := serial.Open(port, mode)
 			if err != nil {
-				log.Fatalf("Unable to perform 1200bps touch: %v", err)
+				listPorts()
+				log.Fatalf("Error: Touch failed on (%s): %v", port, err)
 			}
 			p.SetDTR(false)
 			p.SetRTS(true)
 			p.Close()
 
-			port = discoverPort()
+			port = NewPortDiscoveror().discover()
 			if port == "" {
 				if options.Port == "" {
 					return fmt.Errorf("No port")
