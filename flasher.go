@@ -112,12 +112,17 @@ func main() {
 			log.Fatalf("Error: Unable to open %s (%v)", platformPath, err)
 		}
 
+		portPath, err := filepath.EvalSymlinks(config.Port)
+		if err != nil {
+			log.Fatalf("Unable to evaluate symlinks %s (%v)", config.Port, err)
+		}
+
 		Upload(&UploadOptions{
 			Boards:    boards,
 			Platform:  platform,
 			SkipTouch: config.SkipTouch,
 			Board:     config.Board,
-			Port:      config.Port,
+			Port:      portPath,
 			Binary:    config.Binary,
 			Tools:     config.Tools,
 		})
