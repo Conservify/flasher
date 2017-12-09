@@ -63,7 +63,11 @@ func echoSerial(config *configuration, c *chan bool) {
 
 	var file *os.File
 	if config.TailAppend != "" {
-		file, err = os.OpenFile(config.TailAppend, os.O_APPEND|os.O_WRONLY, 0600)
+		log.Printf("Logging to %s", config.TailAppend)
+		file, err = os.OpenFile(config.TailAppend, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
+		if err != nil {
+			log.Fatalf("Unable to open %s (%v)", config.TailAppend, err)
+		}
 		defer file.Close()
 	}
 
