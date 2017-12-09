@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -77,8 +78,10 @@ func echoSerial(config *configuration, c *chan bool) {
 			break
 		}
 		*c <- true
-		fmt.Printf("%v", string(buff[:n]))
-		file.WriteString(string(buff[:n]))
+		// This is probably controversial:
+		sanitized := strings.Replace(string(buff[:n]), "\r", "", -1)
+		fmt.Printf("%v", sanitized)
+		file.WriteString(sanitized)
 	}
 }
 
