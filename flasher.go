@@ -18,6 +18,7 @@ type configuration struct {
 	Tools          string
 	SkipTouch      bool
 	Tail           bool
+	TailAppend     string
 	TailInactivity int
 }
 
@@ -59,6 +60,12 @@ func echoSerial(config *configuration, c *chan bool) {
 		log.Fatalf("Unable to open %s (%v)", config.Port, err)
 	}
 
+	var file *os.File
+	if config.TailAppend != "" {
+		file, err = os.OpenFile(config.TailAppend, os.O_APPEND|os.O_WRONLY, 0600)
+		defer file.Close()
+	}
+
 	buff := make([]byte, 100)
 	for {
 		n, err := port.Read(buff)
@@ -71,6 +78,7 @@ func echoSerial(config *configuration, c *chan bool) {
 		}
 		*c <- true
 		fmt.Printf("%v", string(buff[:n]))
+		file.WriteString(string(buff[:n]))
 	}
 }
 
@@ -83,6 +91,7 @@ func main() {
 	flag.StringVar(&config.Tools, "tools", "", "path to the tools directory")
 	flag.BoolVar(&config.SkipTouch, "skip-touch", false, "skip the touch")
 	flag.BoolVar(&config.Tail, "tail", false, "show serial")
+	flag.StringVar(&config.TailAppend, "append", "", "append tail to file")
 	flag.IntVar(&config.TailInactivity, "tail-inactivity", 0, "inactive time until quitting tail")
 	flag.Parse()
 
