@@ -95,8 +95,6 @@ func echoSerial(config *configuration, port serial.Port, c *chan bool) {
 		fmt.Printf("%v", sanitized)
 		file.WriteString(sanitized)
 	}
-
-	log.Printf("Tailing done.")
 }
 
 func main() {
