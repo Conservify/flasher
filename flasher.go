@@ -65,7 +65,12 @@ func openSerial(config *configuration) (serial.Port, error) {
 	return port, nil
 }
 
-func echoSerial(config *configuration, port serial.Port, c *chan bool) {
+type EchoStatus struct {
+	Data   bool
+	Exited bool
+}
+
+func echoSerial(config *configuration, port serial.Port, c *chan *EchoStatus) {
 	defer port.Close()
 
 	var file *os.File
@@ -89,11 +94,17 @@ func echoSerial(config *configuration, port serial.Port, c *chan bool) {
 		if n == 0 {
 			break
 		}
-		*c <- true
+		*c <- &EchoStatus{
+			Data: true,
+		}
 		// This is probably controversial:
 		sanitized := strings.Replace(string(buff[:n]), "\r", "", -1)
 		fmt.Printf("%v", sanitized)
 		file.WriteString(sanitized)
+	}
+
+	*c <- &EchoStatus{
+		Exited: true,
 	}
 }
 
@@ -165,7 +176,7 @@ func main() {
 				}
 			}
 
-			ch := make(chan bool)
+			ch := make(chan *EchoStatus)
 
 			port, err := openSerial(&config)
 			if err != nil {
@@ -177,16 +188,20 @@ func main() {
 			go func() {
 				for {
 					time.Sleep(1 * time.Second)
-					ch <- false
+					ch <- &EchoStatus{}
 				}
 			}()
 
 			previous := time.Now()
 
 			for {
-				data := <-ch
-				if data {
+				status := <-ch
+				if status.Data {
 					previous = time.Now()
+				}
+				if status.Exited {
+					port.Close()
+					break
 				}
 
 				if config.TailInactivity > 0 {
