@@ -70,7 +70,7 @@ type EchoStatus struct {
 	Exited bool
 }
 
-func echoSerial(config *configuration, port serial.Port, c *chan *EchoStatus) {
+func echoSerial(config *configuration, port serial.Port, c chan *EchoStatus) {
 	defer port.Close()
 
 	var file *os.File
@@ -94,7 +94,7 @@ func echoSerial(config *configuration, port serial.Port, c *chan *EchoStatus) {
 		if n == 0 {
 			break
 		}
-		*c <- &EchoStatus{
+		c <- &EchoStatus{
 			Data: true,
 		}
 		// This is probably controversial:
@@ -103,7 +103,7 @@ func echoSerial(config *configuration, port serial.Port, c *chan *EchoStatus) {
 		file.WriteString(sanitized)
 	}
 
-	*c <- &EchoStatus{
+	c <- &EchoStatus{
 		Exited: true,
 	}
 }
@@ -183,7 +183,7 @@ func main() {
 				log.Fatalf("Error: Unable to open port: %v", err)
 			}
 
-			go echoSerial(&config, port, &ch)
+			go echoSerial(&config, port, ch)
 
 			go func() {
 				for {
