@@ -1,7 +1,9 @@
+GOARCH ?= amd64
+GO ?= env GOOS=linux GOARCH=$(GOARCH) go
 UNAME := $(shell uname)
 
 flasher: *.go
-	go build -o flasher *.go
+	$(GO) build -o flasher *.go
 
 install: flasher
 	echo $(UNAME)
