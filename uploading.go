@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
-	"go.bug.st/serial.v1"
 	"log"
 	"path"
 	"runtime"
 	"sort"
 	"strings"
 	"time"
+
+	"go.bug.st/serial.v1"
 )
 
 type UploadOptions struct {
@@ -118,10 +119,16 @@ func Upload(options *UploadOptions) error {
 	commandKey := "cmd." + getPlatformKey()
 	platformSpecificCommand := u.Properties[commandKey]
 	if platformSpecificCommand != "" {
-		log.Printf("Using platform specific upload command (tried %s): %s", commandKey, platformSpecificCommand)
-		u.Properties["cmd"] = platformSpecificCommand
+		// Eventually we should probably be downoading the arch specific
+		// package and reading the configurations there.
+		if runtime.GOARCH == "arm" {
+			u.Properties["cmd"] = platformSpecificCommand + "_arm"
+		} else {
+			u.Properties["cmd"] = platformSpecificCommand
+		}
+		log.Printf("Using platform specific upload command (tried %s): %s (%s %s)", commandKey, platformSpecificCommand, runtime.GOOS, runtime.GOARCH)
 	} else {
-		log.Printf("No platform specific upload command, (tried %s) using %s", commandKey, u.Properties["cmd"])
+		log.Printf("No platform specific upload command, (tried %s) using %s (%s %s)", commandKey, u.Properties["cmd"], runtime.GOOS, runtime.GOARCH)
 	}
 
 	port := options.Port
