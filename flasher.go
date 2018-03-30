@@ -1,15 +1,17 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
-	"go.bug.st/serial.v1"
 	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"go.bug.st/serial.v1"
 )
 
 type configuration struct {
@@ -70,17 +72,32 @@ type EchoStatus struct {
 	Exited bool
 }
 
+func openFile(config *configuration) *os.File {
+	if config.TailAppend == "" {
+		return nil
+	}
+
+	log.Printf("Logging to %s...", config.TailAppend)
+
+	file, err := os.OpenFile(config.TailAppend, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
+	if err != nil {
+		log.Fatalf("Unable to open %s: %v", config.TailAppend, err)
+	}
+
+	return file
+}
+
 func echoSerial(config *configuration, port serial.Port, c chan *EchoStatus) {
 	defer port.Close()
 
-	var file *os.File
-	if config.TailAppend != "" {
-		log.Printf("Logging to %s", config.TailAppend)
-		file, err := os.OpenFile(config.TailAppend, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
-		if err != nil {
-			log.Fatalf("Unable to open %s: %v", config.TailAppend, err)
-		}
+	var w *bufio.Writer
+	file := openFile(config)
+	if file != nil {
+		w = bufio.NewWriter(file)
+
 		defer file.Close()
+
+		defer w.Flush()
 	}
 
 	buff := make([]byte, 256)
@@ -99,8 +116,14 @@ func echoSerial(config *configuration, port serial.Port, c chan *EchoStatus) {
 		}
 		// This is probably controversial:
 		sanitized := strings.Replace(string(buff[:n]), "\r", "", -1)
-		fmt.Printf("%v", sanitized)
-		file.WriteString(sanitized)
+		if w != nil {
+			fmt.Printf("%v", sanitized)
+			w.WriteString(sanitized)
+			w.Flush()
+		} else {
+			fmt.Printf("%v", sanitized)
+		}
+
 	}
 
 	c <- &EchoStatus{
