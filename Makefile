@@ -1,13 +1,22 @@
 GOARCH ?= amd64
-GO ?= env GOOS=linux GOARCH=$(GOARCH) go
+GOOS ?= linux
+GO ?= env GOOS=$(GOOS) GOARCH=$(GOARCH) go
 UNAME := $(shell uname)
 BUILD ?= build
+BUILDARCH ?= $(BUILD)/$(GOOS)-$(GOARCH)
 
-$(BUILD)/flasher: *.go
-	$(GO) build -o $(BUILD)/flasher *.go
+all:
+	GOOS=linux GOARCH=amd64 make binaries-all
+	GOOS=linux GOARCH=arm make binaries-all
+	GOOS=darwin GOARCH=amd64 make binaries-all
 
-$(BUILD):
-	mkdir -p $(BUILD)
+binaries-all: $(BUILDARCH)/flasher
+
+$(BUILDARCH)/flasher: $(BUILDARCH) *.go
+	$(GO) build -o $(BUILDARCH)/flasher *.go
+
+$(BUILDARCH):
+	mkdir -p $(BUILDARCH)
 
 install: $(BUILD)/flasher
 	echo $(UNAME)
