@@ -18,11 +18,11 @@ $(BUILDARCH)/flasher: $(BUILDARCH) *.go
 $(BUILDARCH):
 	mkdir -p $(BUILDARCH)
 
-install: $(BUILD)/flasher
+install: $(BUILDARCH)/flasher
 	echo $(UNAME)
-	mkdir -p ~/tools/lib
-	cp -a tools ~/tools/lib/flasher
-	sudo cp $(BUILD)/flasher ~/tools/bin
+	mkdir -p ~/tools/lib/flasher
+	cp -a tools/* ~/tools/lib/flasher
+	sudo cp $(BUILDARCH)/flasher ~/tools/bin
 ifeq ($(UNAME),Linux)
 	sudo chown root. ~/tools/bin/flasher
 	sudo chmod ug+s ~/tools/bin/flasher

@@ -13,13 +13,14 @@ import (
 )
 
 type UploadOptions struct {
-	Boards    *PropertiesMap
-	Platform  *PropertiesMap
-	Board     string
-	Binary    string
-	Port      string
-	Tools     string
-	SkipTouch bool
+	Boards      *PropertiesMap
+	Platform    *PropertiesMap
+	Board       string
+	Binary      string
+	Port        string
+	Tools       string
+	SkipTouch   bool
+	FlashOffset int
 }
 
 func getPortsMap() map[string]bool {
@@ -114,6 +115,9 @@ func Upload(options *UploadOptions) error {
 	board := options.Boards.ToSubtree(options.Board)
 	tools := options.Platform.ToSubtree("tools")
 	tool, _ := board.Lookup("upload.tool", make(map[string]string))
+
+	// HACK: We only really support this right now anyway.
+	tool = "bossac18"
 	u := board.Merge(tools.ToSubtree(tool))
 
 	commandKey := "cmd." + getPlatformKey()
@@ -129,6 +133,13 @@ func Upload(options *UploadOptions) error {
 		log.Printf("Using platform specific upload command (tried %s): %s (%s %s)", commandKey, platformSpecificCommand, runtime.GOOS, runtime.GOARCH)
 	} else {
 		log.Printf("No platform specific upload command, (tried %s) using %s (%s %s)", commandKey, u.Properties["cmd"], runtime.GOOS, runtime.GOARCH)
+
+		plainCommand := u.Properties["cmd"]
+		if runtime.GOARCH == "arm" {
+			u.Properties["cmd"] = plainCommand + "_arm"
+		} else {
+			u.Properties["cmd"] = plainCommand + "_linux"
+		}
 	}
 
 	port := options.Port
@@ -169,7 +180,9 @@ func Upload(options *UploadOptions) error {
 
 	u.Properties["upload.verbose"] = u.Properties["upload.params.verbose"]
 	u.Properties["upload.verify"] = u.Properties["upload.params.verify"]
+	u.Properties["upload.offset"] = fmt.Sprintf("%d", options.FlashOffset)
 	u.Properties["runtime.tools.bossac-1.6.1-arduino.path"] = options.Tools
+	u.Properties["runtime.tools.bossac-1.8.0-48-gb176eee.path"] = options.Tools
 	u.Properties["serial.port.file"] = path.Base(port)
 	u.Properties["build.path"] = path.Dir(options.Binary)
 	u.Properties["build.project_name"] = strings.Replace(path.Base(options.Binary), path.Ext(options.Binary), "", -1)

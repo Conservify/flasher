@@ -24,6 +24,7 @@ type configuration struct {
 	TailAppend     string
 	TailInactivity int
 	TailReopen     bool
+	FlashOffset    int
 }
 
 func searchForTools(config *configuration) string {
@@ -134,15 +135,20 @@ func echoSerial(config *configuration, port serial.Port, c chan *EchoStatus) {
 func main() {
 	config := configuration{}
 
+	flag.StringVar(&config.Tools, "tools", "", "path to the tools directory")
 	flag.StringVar(&config.Board, "board", "adafruit_feather_m0", "board to upload to")
+
+	flag.BoolVar(&config.SkipTouch, "skip-touch", false, "skip the touch")
+
 	flag.StringVar(&config.Port, "port", "", "port to upload to")
 	flag.StringVar(&config.Binary, "binary", "", "path to the binary (required)")
-	flag.StringVar(&config.Tools, "tools", "", "path to the tools directory")
-	flag.BoolVar(&config.SkipTouch, "skip-touch", false, "skip the touch")
+	flag.IntVar(&config.FlashOffset, "flash-offset", 8192, "flash offset to flash program")
+
 	flag.BoolVar(&config.Tail, "tail", false, "show serial")
 	flag.StringVar(&config.TailAppend, "append", "", "append tail to file")
 	flag.IntVar(&config.TailInactivity, "tail-inactivity", 0, "inactive time until quitting tail")
 	flag.BoolVar(&config.TailReopen, "tail-reopen", false, "tail again after inactivity or file loss")
+
 	flag.Parse()
 
 	if config.Binary == "" && !config.Tail {
@@ -177,13 +183,14 @@ func main() {
 		}
 
 		Upload(&UploadOptions{
-			Boards:    boards,
-			Platform:  platform,
-			SkipTouch: config.SkipTouch,
-			Board:     config.Board,
-			Port:      portPath,
-			Binary:    config.Binary,
-			Tools:     config.Tools,
+			Boards:      boards,
+			Platform:    platform,
+			SkipTouch:   config.SkipTouch,
+			Board:       config.Board,
+			Port:        portPath,
+			Binary:      config.Binary,
+			Tools:       config.Tools,
+			FlashOffset: config.FlashOffset,
 		})
 	}
 
