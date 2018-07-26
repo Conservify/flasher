@@ -135,10 +135,15 @@ func Upload(options *UploadOptions) error {
 		log.Printf("No platform specific upload command, (tried %s) using %s (%s %s)", commandKey, u.Properties["cmd"], runtime.GOOS, runtime.GOARCH)
 
 		plainCommand := u.Properties["cmd"]
-		if runtime.GOARCH == "arm" {
-			u.Properties["cmd"] = plainCommand + "_arm"
+		log.Printf("%s", runtime.GOOS)
+		if runtime.GOOS == "darwin" {
+			u.Properties["cmd"] = plainCommand + "_osx"
 		} else {
-			u.Properties["cmd"] = plainCommand + "_linux"
+			if runtime.GOARCH == "arm" {
+				u.Properties["cmd"] = plainCommand + "_arm"
+			} else {
+				u.Properties["cmd"] = plainCommand + "_linux"
+			}
 		}
 	}
 
