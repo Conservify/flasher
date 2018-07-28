@@ -21,6 +21,7 @@ $(BUILDARCH):
 install: all
 	echo $(UNAME)
 ifeq ($(UNAME),Linux)
+	rm -rf ~/tools/lib/flasher
 	mkdir -p ~/tools/lib
 	cp -a tools ~/tools/lib/flasher
 	sudo cp $(BUILD)/linux-amd64/flasher ~/tools/bin
@@ -28,6 +29,7 @@ ifeq ($(UNAME),Linux)
 	sudo chmod ug+s ~/tools/bin/flasher
 endif
 ifeq ($(UNAME),Darwin)
+	rm -rf ~/tools/lib/flasher
 	mkdir -p ~/tools/lib
 	cp -a tools ~/tools/lib/flasher
 	sudo cp $(BUILD)/darwin-amd64/flasher ~/tools/bin
