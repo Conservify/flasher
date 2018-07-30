@@ -195,7 +195,7 @@ func main() {
 	}
 
 	if config.Tail {
-		time.Sleep(1 * time.Second)
+		time.Sleep(500 * time.Millisecond)
 
 		for {
 			if _, err := os.Stat(config.Port); os.IsNotExist(err) {
