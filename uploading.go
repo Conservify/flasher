@@ -89,7 +89,7 @@ func (pd *PortDiscoverer) discover() string {
 
 		time.Sleep(500 * time.Millisecond)
 
-		if time.Since(s) > 10*time.Second {
+		if time.Since(s) > 5*time.Second {
 			break
 		}
 
