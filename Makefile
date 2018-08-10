@@ -39,5 +39,6 @@ clean:
 	rm -rf $(BUILD)
 
 deps:
+	$(GO) get go.bug.st/serial.v1
 
 .PHONY: $(BUILD)
