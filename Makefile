@@ -38,4 +38,6 @@ endif
 clean:
 	rm -rf $(BUILD)
 
+deps:
+
 .PHONY: $(BUILD)
