@@ -17,6 +17,7 @@ $(BUILDARCH)/flasher: $(BUILDARCH) *.go
 
 $(BUILDARCH):
 	mkdir -p $(BUILDARCH)
+	cp -a tools $(BUILDARCH)
 
 install: all
 	echo $(UNAME)

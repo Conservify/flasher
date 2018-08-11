@@ -116,34 +116,21 @@ func Upload(options *UploadOptions) error {
 	tools := options.Platform.ToSubtree("tools")
 	tool, _ := board.Lookup("upload.tool", make(map[string]string))
 
-	// HACK: We only really support this right now anyway.
-	tool = "bossac18"
+	// Force version 18 of bossac.
+	if tool == "bossac" {
+		tool = "bossac18"
+	}
+
 	u := board.Merge(tools.ToSubtree(tool))
 
-	commandKey := "cmd." + getPlatformKey()
-	platformSpecificCommand := u.Properties[commandKey]
-	if platformSpecificCommand != "" {
-		// Eventually we should probably be downoading the arch specific
-		// package and reading the configurations there.
-		if runtime.GOARCH == "arm" {
-			u.Properties["cmd"] = platformSpecificCommand + "_arm"
-		} else {
-			u.Properties["cmd"] = platformSpecificCommand
-		}
-		log.Printf("Using platform specific upload command (tried %s): %s (%s %s)", commandKey, platformSpecificCommand, runtime.GOOS, runtime.GOARCH)
+	original := u.Properties["cmd"]
+	if runtime.GOOS == "darwin" {
+		u.Properties["cmd"] = original + "_osx"
 	} else {
-		log.Printf("No platform specific upload command, (tried %s) using %s (%s %s)", commandKey, u.Properties["cmd"], runtime.GOOS, runtime.GOARCH)
-
-		plainCommand := u.Properties["cmd"]
-		log.Printf("%s", runtime.GOOS)
-		if runtime.GOOS == "darwin" {
-			u.Properties["cmd"] = plainCommand + "_osx"
+		if runtime.GOARCH == "arm" {
+			u.Properties["cmd"] = original + "_arm"
 		} else {
-			if runtime.GOARCH == "arm" {
-				u.Properties["cmd"] = plainCommand + "_arm"
-			} else {
-				u.Properties["cmd"] = plainCommand + "_linux"
-			}
+			u.Properties["cmd"] = original + "_linux"
 		}
 	}
 
