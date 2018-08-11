@@ -128,7 +128,7 @@ func Upload(options *UploadOptions) error {
 		u.Properties["cmd"] = original + "_osx"
 	} else {
 		if runtime.GOARCH == "arm" {
-			u.Properties["cmd"] = original + "_arm"
+			u.Properties["cmd"] = original + "_linux_arm"
 		} else {
 			u.Properties["cmd"] = original + "_linux"
 		}
