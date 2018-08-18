@@ -21,6 +21,7 @@ type UploadOptions struct {
 	Tools       string
 	SkipTouch   bool
 	FlashOffset int
+	Quietly     bool
 }
 
 func getPortsMap() map[string]bool {
@@ -183,7 +184,7 @@ func Upload(options *UploadOptions) error {
 
 	log.Printf(line)
 
-	if err := ExecuteAndPipeCommandLine(line, "upload | "); err != nil {
+	if err := ExecuteAndPipeCommandLine(line, "upload | ", options.Quietly); err != nil {
 		return err
 	}
 

@@ -15,16 +15,20 @@ import (
 )
 
 type configuration struct {
-	Board          string
-	Port           string
-	Binary         string
-	Tools          string
-	SkipTouch      bool
+	Board     string
+	Port      string
+	Binary    string
+	Tools     string
+	SkipTouch bool
+
+	UploadQuietly bool
+
 	Tail           bool
 	TailAppend     string
 	TailInactivity int
 	TailReopen     bool
-	FlashOffset    int
+
+	FlashOffset int
 }
 
 func searchForTools(config *configuration) string {
@@ -144,6 +148,8 @@ func main() {
 	flag.StringVar(&config.Binary, "binary", "", "path to the binary (required)")
 	flag.IntVar(&config.FlashOffset, "flash-offset", 8192, "flash offset to flash program")
 
+	flag.BoolVar(&config.UploadQuietly, "upload-quietly", false, "hide upload progress")
+
 	flag.BoolVar(&config.Tail, "tail", false, "show serial")
 	flag.StringVar(&config.TailAppend, "append", "", "append tail to file")
 	flag.IntVar(&config.TailInactivity, "tail-inactivity", 0, "inactive time until quitting tail")
@@ -191,6 +197,7 @@ func main() {
 			Binary:      config.Binary,
 			Tools:       config.Tools,
 			FlashOffset: config.FlashOffset,
+			Quietly:     config.UploadQuietly,
 		})
 	}
 
