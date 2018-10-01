@@ -2,10 +2,10 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"os/exec"
 	"strings"
 	"unicode"
-	"fmt"
 )
 
 func ParseCommandLine(s string) []string {
@@ -37,7 +37,7 @@ func ParseCommandLine(s string) []string {
 	return fields
 }
 
-func ExecuteAndPipeCommandLine(line string, prefix string) error {
+func ExecuteAndPipeCommandLine(line string, prefix string, quiet bool) error {
 	parts := ParseCommandLine(line)
 	c := exec.Command(parts[0], parts[1:]...)
 	soReader, err := c.StdoutPipe()
@@ -52,14 +52,18 @@ func ExecuteAndPipeCommandLine(line string, prefix string) error {
 	soScanner := bufio.NewScanner(soReader)
 	go func() {
 		for soScanner.Scan() {
-			fmt.Printf("%s%s\n", prefix, soScanner.Text())
+			if !quiet {
+				fmt.Printf("%s%s\n", prefix, soScanner.Text())
+			}
 		}
 	}()
 
 	seScanner := bufio.NewScanner(seReader)
 	go func() {
 		for seScanner.Scan() {
-			fmt.Printf("%s%s\n", prefix, seScanner.Text())
+			if !quiet {
+				fmt.Printf("%s%s\n", prefix, seScanner.Text())
+			}
 		}
 	}()
 

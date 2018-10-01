@@ -23,6 +23,7 @@ type UploadOptions struct {
 	FlashOffset int
 	Verbose     bool
 	Verify      bool
+	Quietly     bool
 }
 
 func getPortsMap() map[string]bool {
@@ -193,7 +194,7 @@ func Upload(options *UploadOptions) error {
 
 	log.Printf(line)
 
-	if err := ExecuteAndPipeCommandLine(line, "upload | "); err != nil {
+	if err := ExecuteAndPipeCommandLine(line, "upload | ", options.Quietly); err != nil {
 		return err
 	}
 
