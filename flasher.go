@@ -20,6 +20,8 @@ type configuration struct {
 	Binary         string
 	Tools          string
 	SkipTouch      bool
+	Verbose        bool
+	Verify         bool
 	Tail           bool
 	TailAppend     string
 	TailInactivity int
@@ -139,6 +141,8 @@ func main() {
 	flag.StringVar(&config.Board, "board", "adafruit_feather_m0", "board to upload to")
 
 	flag.BoolVar(&config.SkipTouch, "skip-touch", false, "skip the touch")
+	flag.BoolVar(&config.Verbose, "verbose", false, "verbose")
+	flag.BoolVar(&config.Verify, "verify", false, "verify")
 
 	flag.StringVar(&config.Port, "port", "", "port to upload to")
 	flag.StringVar(&config.Binary, "binary", "", "path to the binary (required)")
@@ -191,6 +195,8 @@ func main() {
 			Binary:      config.Binary,
 			Tools:       config.Tools,
 			FlashOffset: config.FlashOffset,
+			Verbose:     config.Verbose,
+			Verify:      config.Verify,
 		})
 	}
 

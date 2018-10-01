@@ -21,6 +21,8 @@ type UploadOptions struct {
 	Tools       string
 	SkipTouch   bool
 	FlashOffset int
+	Verbose     bool
+	Verify      bool
 }
 
 func getPortsMap() map[string]bool {
@@ -170,8 +172,16 @@ func Upload(options *UploadOptions) error {
 
 	log.Printf("Using port %s\n", port)
 
-	u.Properties["upload.verbose"] = u.Properties["upload.params.verbose"]
-	u.Properties["upload.verify"] = u.Properties["upload.params.verify"]
+	if options.Verbose {
+		u.Properties["upload.verbose"] = u.Properties["upload.params.verbose"]
+	} else {
+		u.Properties["upload.verbose"] = ""
+	}
+	if options.Verify {
+		u.Properties["upload.verify"] = u.Properties["upload.params.verify"]
+	} else {
+		u.Properties["upload.verify"] = ""
+	}
 	u.Properties["upload.offset"] = fmt.Sprintf("%d", options.FlashOffset)
 	u.Properties["runtime.tools.bossac-1.6.1-arduino.path"] = options.Tools
 	u.Properties["runtime.tools.bossac-1.8.0-48-gb176eee.path"] = options.Tools
