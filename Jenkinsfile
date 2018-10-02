@@ -12,9 +12,5 @@ make
 cp build/linux-amd64/flasher ~/workspace/bin
 """
         }
-
-        stage ('archive') {
-            archiveArtifacts artifacts: 'flasher'
-        }
     }
 }
