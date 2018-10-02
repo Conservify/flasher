@@ -9,7 +9,7 @@ timestamps {
 go get go.bug.st/serial.v1
 make clean
 make
-cp flasher ~/workspace/bin
+cp build/linux-amd64/flasher ~/workspace/bin
 """
         }
 
