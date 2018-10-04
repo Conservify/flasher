@@ -33,6 +33,7 @@ ifeq ($(UNAME),Darwin)
 	rm -rf ~/tools/lib/flasher
 	mkdir -p ~/tools/lib
 	cp -a tools ~/tools/lib/flasher
+	sudo rm ~/tools/bin
 	sudo cp $(BUILD)/darwin-amd64/flasher ~/tools/bin
 endif
 
