@@ -7,6 +7,7 @@ timestamps {
         stage ('build') {
             sh """
 go get go.bug.st/serial.v1
+go get github.com/Conservify/tooling
 make clean
 make
 cp build/linux-amd64/flasher ~/workspace/bin

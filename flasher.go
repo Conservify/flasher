@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"go.bug.st/serial.v1"
+
+	tooling "github.com/Conservify/tooling"
 )
 
 type configuration struct {
@@ -166,7 +168,7 @@ func main() {
 		os.Exit(2)
 	}
 
-	pd := NewPortDiscoveror()
+	pd := tooling.NewPortDiscoveror()
 
 	if config.Binary != "" {
 		if _, err := os.Stat(config.Binary); os.IsNotExist(err) {
@@ -176,13 +178,13 @@ func main() {
 		config.Tools = searchForTools(&config)
 
 		boardsPath := path.Join(config.Tools, "boards.txt")
-		boards, err := NewPropertiesMapFromFile(boardsPath)
+		boards, err := tooling.NewPropertiesMapFromFile(boardsPath)
 		if err != nil {
 			log.Fatalf("Error: Unable to open %s (%v)", boardsPath, err)
 		}
 
 		platformPath := path.Join(config.Tools, "platform.txt")
-		platform, err := NewPropertiesMapFromFile(platformPath)
+		platform, err := tooling.NewPropertiesMapFromFile(platformPath)
 		if err != nil {
 			log.Fatalf("Error: Unable to open %s (%v)", platformPath, err)
 		}
@@ -192,18 +194,18 @@ func main() {
 			log.Fatalf("Unable to evaluate symlinks %s (%v)", config.Port, err)
 		}
 
-		Upload(&UploadOptions{
-			Boards:      boards,
-			Platform:    platform,
-			SkipTouch:   config.SkipTouch,
-			Board:       config.Board,
-			Port:        portPath,
-			Binary:      config.Binary,
-			Tools:       config.Tools,
-			FlashOffset: config.FlashOffset,
-			Verbose:     config.Verbose,
-			Verify:      config.Verify,
-			Quietly:     config.UploadQuietly,
+		tooling.Upload(&tooling.UploadOptions{
+			Boards:         boards,
+			Platform:       platform,
+			SkipTouch:      config.SkipTouch,
+			Board:          config.Board,
+			Port:           portPath,
+			Binary:         config.Binary,
+			ToolsDirectory: config.Tools,
+			FlashOffset:    config.FlashOffset,
+			Verbose:        config.Verbose,
+			Verify:         config.Verify,
+			Quietly:        config.UploadQuietly,
 		})
 	}
 
@@ -213,7 +215,7 @@ func main() {
 		for {
 			if _, err := os.Stat(config.Port); os.IsNotExist(err) {
 				log.Printf("Port '%s' disappeared, scanning...", config.Port)
-				config.Port = pd.discover()
+				config.Port = pd.Discover()
 				if config.Port == "" {
 					log.Fatalf("Error: Unable to find port to tail.")
 				}
