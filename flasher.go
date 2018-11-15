@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -33,35 +32,6 @@ type configuration struct {
 	TailReopen     bool
 
 	FlashOffset int
-}
-
-func searchForTools(config *configuration) string {
-	if config.Tools != "" {
-		return config.Tools
-	}
-
-	exec, err := os.Executable()
-	if err != nil {
-		log.Fatal(err)
-	}
-	dir, err := filepath.Abs(filepath.Dir(exec))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	candidates := []string{
-		filepath.Join(dir, "tools"),
-		filepath.Join(filepath.Dir(dir), "lib/flasher"),
-		"./tools",
-	}
-
-	for _, p := range candidates {
-		if _, err := os.Stat(p); !os.IsNotExist(err) {
-			return p
-		}
-	}
-
-	panic(fmt.Sprintf("Unable to find tools, looked in %v", candidates))
 }
 
 func openSerial(config *configuration) (serial.Port, error) {
@@ -175,18 +145,11 @@ func main() {
 			log.Fatalf("Error: No such binary '%s'", config.Binary)
 		}
 
-		config.Tools = searchForTools(&config)
+		ae := tooling.NewArduinoEnvironment()
 
-		boardsPath := path.Join(config.Tools, "boards.txt")
-		boards, err := tooling.NewPropertiesMapFromFile(boardsPath)
+		err := ae.Locate(config.Tools)
 		if err != nil {
-			log.Fatalf("Error: Unable to open %s (%v)", boardsPath, err)
-		}
-
-		platformPath := path.Join(config.Tools, "platform.txt")
-		platform, err := tooling.NewPropertiesMapFromFile(platformPath)
-		if err != nil {
-			log.Fatalf("Error: Unable to open %s (%v)", platformPath, err)
+			log.Fatalf("Error: %v", err)
 		}
 
 		portPath, err := filepath.EvalSymlinks(config.Port)
@@ -195,17 +158,15 @@ func main() {
 		}
 
 		tooling.Upload(&tooling.UploadOptions{
-			Boards:         boards,
-			Platform:       platform,
-			SkipTouch:      config.SkipTouch,
-			Board:          config.Board,
-			Port:           portPath,
-			Binary:         config.Binary,
-			ToolsDirectory: config.Tools,
-			FlashOffset:    config.FlashOffset,
-			Verbose:        config.Verbose,
-			Verify:         config.Verify,
-			Quietly:        config.UploadQuietly,
+			Arduino:     ae,
+			SkipTouch:   config.SkipTouch,
+			Board:       config.Board,
+			Port:        portPath,
+			Binary:      config.Binary,
+			FlashOffset: config.FlashOffset,
+			Verbose:     config.Verbose,
+			Verify:      config.Verify,
+			Quietly:     config.UploadQuietly,
 		})
 	}
 
