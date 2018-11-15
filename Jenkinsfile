@@ -1,7 +1,11 @@
+@Library('conservify') _
+
+conservifyProperties()
+
 timestamps {
     node () {
         stage ('git') {
-            checkout([$class: 'GitSCM', branches: [[name: '*/master']], userRemoteConfigs: [[url: 'https://github.com/Conservify/flasher.git']]])
+            checkout scm
         }
 
         stage ('build') {
