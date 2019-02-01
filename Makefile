@@ -11,6 +11,7 @@ all:
 	GOOS=darwin GOARCH=amd64 make binaries-all
 
 binaries-all: $(BUILDARCH)/flasher
+	cd $(BUILDARCH) && zip -r ../$(GOOS)-$(GOARCH).zip *
 
 $(BUILDARCH)/flasher: $(BUILDARCH) *.go
 	$(GO) build -o $(BUILDARCH)/flasher *.go

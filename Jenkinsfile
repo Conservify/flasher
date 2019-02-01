@@ -17,5 +17,11 @@ make
 cp build/linux-amd64/flasher ~/workspace/bin
 """
         }
+
+        stage ("archive") {
+            dir ("build") {
+                archiveArtifacts "*.zip"
+            }
+        }
     }
 }
