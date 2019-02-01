@@ -12,7 +12,7 @@ import (
 
 	"go.bug.st/serial.v1"
 
-	tooling "github.com/Conservify/tooling"
+	tooling "github.com/conservify/tooling"
 )
 
 type configuration struct {
