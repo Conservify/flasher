@@ -26,10 +26,11 @@ type configuration struct {
 	Verify        bool
 	UploadQuietly bool
 
-	Tail           bool
-	TailAppend     string
-	TailInactivity int
-	TailReopen     bool
+	Tail            bool
+	TailAppend      string
+	TailInactivity  int
+	TailReopen      bool
+	TailTriggerStop string
 
 	FlashOffset int
 }
@@ -102,7 +103,11 @@ func echoSerial(config *configuration, port serial.Port, c chan *EchoStatus) {
 		} else {
 			fmt.Printf("%v", sanitized)
 		}
-
+		if config.TailTriggerStop != "" {
+			if strings.Index(sanitized, config.TailTriggerStop) >= 0 {
+				break
+			}
+		}
 	}
 
 	c <- &EchoStatus{
@@ -128,6 +133,7 @@ func main() {
 
 	flag.BoolVar(&config.Tail, "tail", false, "show serial")
 	flag.StringVar(&config.TailAppend, "append", "", "append tail to file")
+	flag.StringVar(&config.TailTriggerStop, "tail-trigger-stop", "", "tail trigger stop")
 	flag.IntVar(&config.TailInactivity, "tail-inactivity", 0, "inactive time until quitting tail")
 	flag.BoolVar(&config.TailReopen, "tail-reopen", false, "tail again after inactivity or file loss")
 
