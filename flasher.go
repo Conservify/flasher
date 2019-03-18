@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -30,6 +31,8 @@ type configuration struct {
 	TailAppend      string
 	TailInactivity  int
 	TailReopen      bool
+	TailTriggerFail string
+	TailTriggerPass string
 	TailTriggerStop string
 
 	FlashOffset int
@@ -67,6 +70,58 @@ func openFile(config *configuration) *os.File {
 	return file
 }
 
+type StopTriggers struct {
+	Stop *regexp.Regexp
+	Pass *regexp.Regexp
+	Fail *regexp.Regexp
+}
+
+func NewStopTriggers(config *configuration) (st *StopTriggers) {
+	var stop *regexp.Regexp
+	var pass *regexp.Regexp
+	var fail *regexp.Regexp
+
+	if config.TailTriggerStop != "" {
+		stop = regexp.MustCompile(config.TailTriggerStop)
+		log.Printf("Stopping on '%s'", config.TailTriggerStop)
+	}
+
+	if config.TailTriggerPass != "" {
+		pass = regexp.MustCompile(config.TailTriggerPass)
+		log.Printf("Passing on '%s'", config.TailTriggerPass)
+	}
+
+	if config.TailTriggerFail != "" {
+		fail = regexp.MustCompile(config.TailTriggerFail)
+		log.Printf("Failing on '%s'", config.TailTriggerFail)
+	}
+
+	return &StopTriggers{
+		Stop: stop,
+		Pass: pass,
+		Fail: fail,
+	}
+}
+
+func (st *StopTriggers) Apply(line string) (exitCode int) {
+	if st.Pass != nil {
+		if st.Pass.MatchString(line) {
+			return 0
+		}
+	}
+	if st.Fail != nil {
+		if st.Fail.MatchString(line) {
+			return 2
+		}
+	}
+	if st.Stop != nil {
+		if st.Stop.MatchString(line) {
+			return 0
+		}
+	}
+	return -1
+}
+
 func echoSerial(config *configuration, port serial.Port, c chan *EchoStatus) {
 	defer port.Close()
 
@@ -81,6 +136,8 @@ func echoSerial(config *configuration, port serial.Port, c chan *EchoStatus) {
 	}
 
 	buff := make([]byte, 256)
+
+	triggers := NewStopTriggers(config)
 
 	for {
 		n, err := port.Read(buff)
@@ -103,10 +160,10 @@ func echoSerial(config *configuration, port serial.Port, c chan *EchoStatus) {
 		} else {
 			fmt.Printf("%v", sanitized)
 		}
-		if config.TailTriggerStop != "" {
-			if strings.Index(sanitized, config.TailTriggerStop) >= 0 {
-				break
-			}
+
+		exitCode := triggers.Apply(sanitized)
+		if exitCode >= 0 {
+			os.Exit(exitCode)
 		}
 	}
 
@@ -133,9 +190,11 @@ func main() {
 
 	flag.BoolVar(&config.Tail, "tail", false, "show serial")
 	flag.StringVar(&config.TailAppend, "append", "", "append tail to file")
-	flag.StringVar(&config.TailTriggerStop, "tail-trigger-stop", "", "tail trigger stop")
 	flag.IntVar(&config.TailInactivity, "tail-inactivity", 0, "inactive time until quitting tail")
 	flag.BoolVar(&config.TailReopen, "tail-reopen", false, "tail again after inactivity or file loss")
+	flag.StringVar(&config.TailTriggerStop, "tail-trigger-stop", "", "tail trigger stop")
+	flag.StringVar(&config.TailTriggerPass, "tail-trigger-pass", "", "tail trigger pass")
+	flag.StringVar(&config.TailTriggerFail, "tail-trigger-fail", "", "tail trigger fail")
 
 	flag.Parse()
 
