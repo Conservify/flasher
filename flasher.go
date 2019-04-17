@@ -23,6 +23,7 @@ type configuration struct {
 	Tools  string
 
 	SkipTouch     bool
+	Touch         bool
 	Verbose       bool
 	Verify        bool
 	UploadQuietly bool
@@ -108,6 +109,7 @@ func (st *StopTriggers) Apply(line string) (exitCode int) {
 		if st.Pass.MatchString(line) {
 			return 0
 		}
+
 	}
 	if st.Fail != nil {
 		if st.Fail.MatchString(line) {
@@ -179,6 +181,7 @@ func main() {
 	flag.StringVar(&config.Board, "board", "adafruit_feather_m0", "board to upload to")
 
 	flag.BoolVar(&config.SkipTouch, "skip-touch", false, "skip the touch")
+	flag.BoolVar(&config.Touch, "touch", false, "touch")
 	flag.BoolVar(&config.Verbose, "verbose", false, "verbose")
 	flag.BoolVar(&config.Verify, "verify", false, "verify")
 
@@ -236,7 +239,20 @@ func main() {
 	}
 
 	if config.Tail {
-		time.Sleep(500 * time.Millisecond)
+		if config.Touch {
+			if config.Port != "" {
+				portPath, err := filepath.EvalSymlinks(config.Port)
+				if err != nil {
+					log.Fatalf("Unable to evaluate symlinks %s (%v)", config.Port, err)
+				}
+
+				tooling.Touch(portPath)
+			}
+		}
+
+		if config.Touch || config.Binary != "" { // Did we upload?
+			time.Sleep(500 * time.Millisecond)
+		}
 
 		for {
 			if _, err := os.Stat(config.Port); os.IsNotExist(err) {
