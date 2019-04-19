@@ -194,7 +194,7 @@ func main() {
 	flag.BoolVar(&config.Tail, "tail", false, "show serial")
 	flag.StringVar(&config.TailAppend, "append", "", "append tail to file")
 	flag.IntVar(&config.TailInactivity, "tail-inactivity", 0, "inactive time until quitting tail")
-	flag.BoolVar(&config.TailReopen, "tail-reopen", false, "tail again after inactivity or file loss")
+	flag.BoolVar(&config.TailReopen, "tail-reopen", true, "tail again after inactivity or file loss")
 	flag.StringVar(&config.TailTriggerStop, "tail-trigger-stop", "", "tail trigger stop")
 	flag.StringVar(&config.TailTriggerPass, "tail-trigger-pass", "", "tail trigger pass")
 	flag.StringVar(&config.TailTriggerFail, "tail-trigger-fail", "", "tail trigger fail")
