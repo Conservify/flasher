@@ -45,7 +45,7 @@ func openSerial(config *configuration) (serial.Port, error) {
 	}
 	port, err := serial.Open(config.Port, mode)
 	if err != nil {
-		log.Fatalf("Unable to open %s: %v", config.Port, err)
+		return nil, err
 	}
 
 	return port, nil
@@ -267,7 +267,12 @@ func main() {
 
 			port, err := openSerial(&config)
 			if err != nil {
-				log.Fatalf("Error: Unable to open port: %v", err)
+				if config.TailReopen {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				} else {
+					log.Fatalf("Error: Unable to open port: %v", err)
+				}
 			}
 
 			go echoSerial(&config, port, ch)
