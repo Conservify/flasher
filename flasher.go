@@ -187,7 +187,7 @@ func main() {
 
 	flag.StringVar(&config.Port, "port", "", "port to upload to")
 	flag.StringVar(&config.Binary, "binary", "", "path to the binary (required)")
-	flag.IntVar(&config.FlashOffset, "flash-offset", 32768, "flash offset to flash program")
+	flag.IntVar(&config.FlashOffset, "flash-offset", 0, "flash offset to flash program")
 
 	flag.BoolVar(&config.UploadQuietly, "upload-quietly", false, "hide upload progress")
 
@@ -209,6 +209,10 @@ func main() {
 	pd := tooling.NewPortDiscoveror()
 
 	if config.Binary != "" {
+		if config.FlashOffset == 0 {
+			flag.Usage()
+			os.Exit(2)
+		}
 		if _, err := os.Stat(config.Binary); os.IsNotExist(err) {
 			log.Fatalf("Error: No such binary '%s'", config.Binary)
 		}
