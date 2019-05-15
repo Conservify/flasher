@@ -26,6 +26,7 @@ ifeq ($(UNAME),Linux)
 	rm -rf ~/tools/lib/flasher
 	mkdir -p ~/tools/lib
 	cp -a tools ~/tools/lib/flasher
+	sudo rm ~/tools/bin/flasher
 	sudo cp $(BUILD)/linux-amd64/flasher ~/tools/bin
 	sudo chown root. ~/tools/bin/flasher
 	sudo chmod ug+s ~/tools/bin/flasher
@@ -34,7 +35,7 @@ ifeq ($(UNAME),Darwin)
 	rm -rf ~/tools/lib/flasher
 	mkdir -p ~/tools/lib
 	cp -a tools ~/tools/lib/flasher
-	sudo rm ~/tools/bin
+	sudo rm ~/tools/bin/flasher
 	sudo cp $(BUILD)/darwin-amd64/flasher ~/tools/bin
 endif
 
