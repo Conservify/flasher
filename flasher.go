@@ -201,11 +201,6 @@ func main() {
 
 	flag.Parse()
 
-	if config.Binary == "" && !config.Tail {
-		flag.Usage()
-		os.Exit(2)
-	}
-
 	pd := tooling.NewPortDiscoveror()
 
 	if config.Binary != "" {
@@ -240,6 +235,10 @@ func main() {
 			Verify:      config.Verify,
 			Quietly:     config.UploadQuietly,
 		})
+	}
+
+	if config.Port != "" && config.Touch {
+		tooling.Touch(config.Port)
 	}
 
 	if config.Tail {
