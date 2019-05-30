@@ -1,0 +1,8 @@
+github.com/conservify/tooling v0.0.0-20190515024856-b591fed8443a h1:j/KlKtvUw2pfqzdhaObdHxYQc958b9wtrk7Qtci69VI=
+github.com/conservify/tooling v0.0.0-20190515024856-b591fed8443a/go.mod h1:2k5ufQDuZyhRFEIO3mi+W9npRPWHVxn1OclR7rS2AOE=
+github.com/creack/goselect v0.1.0 h1:4QiXIhcpSQF50XGaBsFzesjwX/1qOY5bOveQPmN9CXY=
+github.com/creack/goselect v0.1.0/go.mod h1:gHrIcH/9UZDn2qgeTUeW5K9eZsVYCH6/60J/FHysWyE=
+go.bug.st/serial.v1 v0.0.0-20180827123349-5f7892a7bb45 h1:mACY1anK6HNCZtm/DK2Rf2ZPHggVqeB0+7rY9Gl6wyI=
+go.bug.st/serial.v1 v0.0.0-20180827123349-5f7892a7bb45/go.mod h1:dRSl/CVCTf56CkXgJMDOdSwNfo2g1orOGE/gBGdvjZw=
+golang.org/x/sys v0.0.0-20190529164535-6a60838ec259 h1:so6Hr/LodwSZ5UQDu/7PmQiDeS112WwtLvU3lpSPZTU=
+golang.org/x/sys v0.0.0-20190529164535-6a60838ec259/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
