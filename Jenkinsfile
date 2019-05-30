@@ -9,13 +9,13 @@ timestamps {
         }
 
         stage ('build') {
-            sh """
-go get -u go.bug.st/serial.v1
-go get -u github.com/conservify/tooling
+            withEnv(["PATH+GOLANG=${tool 'golang-amd64'}/bin"]) {
+                sh """
 make clean
 make
 cp build/linux-amd64/flasher ~/workspace/bin
 """
+            }
         }
 
         stage ("archive") {
